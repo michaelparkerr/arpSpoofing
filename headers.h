@@ -55,9 +55,6 @@ struct ip_pckt{
     struct ip_h ip;
 };
 
-    // host -> me!
-    // sender -> victim
-    // target -> generally router
 struct sess{
     uint8_t snd_ip[4];
     uint8_t snd_mac[6];
