@@ -39,12 +39,31 @@ void get_mymac(char* mymac, char* iface){
     for(int i=0; i<6; i++) mymac[i] = mac[i];
 }
 
+void print_mac(uint8_t* mac){
+    printf("MAC Address : %.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+}
 
 int main(int argc, char* argv[]) {
-  if (argc != 2) {
-    usage();
-    return -1;
-  }
+
+    if (argc < 4 ){
+        printf("==================================================\n");
+        printf("<<<<<<<<<<<<<<<<<<Out of arguments.>>>>>>>>>>>>>>>\n");
+        printf("Check out your arguments again.\n");
+        printf("./[program name] [dev] [sender_ip] [target_ip]\n");
+        return -1;
+    }
+
+    if( (argc-2)%2 != 0){
+        printf("==================================================\n");
+        printf("Check that session arguments exists. ex) sender_ip or target_ip \n");
+        printf("./[program name] [dev] [sender_ip] [target_ip]\n");
+        return -1;
+    }
+
+    uint8_t my_mac[6]; // host mac address
+        get_mymac((char*)my_mac, argv[1]); // get host mac address
+        printf("[+] my ");
+        print_mac(my_mac);
 
   char* dev = argv[1];
   char errbuf[PCAP_ERRBUF_SIZE];
