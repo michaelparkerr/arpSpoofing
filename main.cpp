@@ -39,6 +39,24 @@ void get_mymac(char* my_mac, char* iface){
     for(int i=0; i<6; i++) my_mac[i] = mac[i];
 }
 
+bool check_arp_reply(const u_char* packet, uint8_t* mymac){
+    struct arp_pckt arp_p;
+    int type;
+
+    memcpy(&arp_p, packet, 42);
+    type = (arp_p.eth.type[0]<<8 | arp_p.eth.type[1]);
+    if(type == 0x0806) {
+    if(!memcmp(arp_p.eth.dst_mac, mymac, 6)) return true;
+    }
+    return false;
+}
+
+void extract_mac(const u_char* packet, uint8_t* tgt_mac){
+    struct arp_h arp;
+    memcpy(&arp, &packet[14], 28);
+    for (int i=0; i<6; i++) tgt_mac[i] = arp.snd_mac[i];
+}
+
 void get_mac(pcap_t* handle, uint8_t* snd_mac, uint8_t* tgt_mac, uint8_t* tgt_ip){
     struct arp_pckt arp_p;
     memcpy(arp_p.eth.src_mac, snd_mac, 6);
@@ -71,7 +89,7 @@ void get_mac(pcap_t* handle, uint8_t* snd_mac, uint8_t* tgt_mac, uint8_t* tgt_ip
             extract_mac(packet, tgt_mac);
             break;
         }
-        pcap_sendpacket(handle, (const u_char*)&buf, 60);
+        pcap_sendpacket(handle, (const u_char*)&arp_p, 60);
     }
 }
 
