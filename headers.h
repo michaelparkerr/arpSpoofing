@@ -14,53 +14,53 @@
 
 using namespace std;
 
-struct ethernet_header{
+struct eth_h{
     uint8_t dst_mac[6];
     uint8_t src_mac[6];
     uint8_t type[2];
 };
 
-struct arp_header{
+struct arp_h{
     uint8_t hd_type[2];
     uint8_t pr_type[2];
     uint8_t hd_len;
     uint8_t pr_len;
     uint8_t opcode[2];
-    uint8_t smac[6];
-    uint8_t sip[4];
-    uint8_t tmac[6];
-    uint8_t tip[4];
+    uint8_t snd_mac[6];
+    uint8_t snd_ip[4];
+    uint8_t tgt_mac[6];
+    uint8_t tgt_ip[4];
 };
 
-struct ip_header{
-    uint8_t version_and_length;
+struct ip_h{
+    uint8_t ver_len;
     uint8_t type;
-    uint16_t length;
-    uint16_t identification;
-    uint16_t flag_and_offset;
+    uint16_t len;
+    uint16_t id;
+    uint16_t flg_ofs;
     uint8_t ttl;
-    uint8_t protocol;
-    uint16_t checksum;
+    uint8_t prtc;
+    uint16_t chksm;
     uint8_t src_ip[4];
     uint8_t dst_ip[4];
 };
 
-struct packet{
-    struct ethernet_header eth;
-    struct arp_header arp;
+struct arp_pckt{
+    struct eth_h eth;
+    struct arp_h arp;
 };
 
-struct packet2{
-    struct ethernet_header eth;
-    struct ip_header ip;
+struct ip_pckt{
+    struct eth_h eth;
+    struct ip_h ip;
 };
 
     // host -> me!
     // sender -> victim
     // target -> generally router
-struct session{
-    uint8_t sip[4];
-    uint8_t smac[6];
-    uint8_t tip[4];
-    uint8_t tmac[6];
+struct sess{
+    uint8_t snd_ip[4];
+    uint8_t snd_mac[6];
+    uint8_t tgt_ip[4];
+    uint8_t tgt_mac[6];
 };
