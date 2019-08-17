@@ -32,6 +32,11 @@ struct arp_h{
     uint8_t tgt_ip[4];
 };
 
+struct arp_pckt{
+    struct eth_h eth;
+    struct arp_h arp;
+};
+
 struct ip_h{
     uint8_t ver_len;
     uint8_t type;
@@ -43,11 +48,6 @@ struct ip_h{
     uint16_t chksm;
     uint8_t src_ip[4];
     uint8_t dst_ip[4];
-};
-
-struct arp_pckt{
-    struct eth_h eth;
-    struct arp_h arp;
 };
 
 struct ip_pckt{
