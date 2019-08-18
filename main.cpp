@@ -16,26 +16,27 @@
 using namespace std;
 
 void usage() {
+
   printf("syntax: pcap_test <interface>\n");
   printf("sample: pcap_test wlan0\n");
+
 }
 
 void get_mymac(char* my_mac, char* iface){
-    int fd;
 
+    int fd;
     struct ifreq ifr;
     char *mac;
 
     fd = socket(AF_INET, SOCK_DGRAM, 0);
-
     ifr.ifr_addr.sa_family = AF_INET;
     strncpy((char *)ifr.ifr_name , (const char *)iface , IFNAMSIZ-1);
 
     ioctl(fd, SIOCGIFHWADDR, &ifr);
-
     close(fd);
 
     mac = (char *)ifr.ifr_hwaddr.sa_data;
+
     for(int i=0; i<6; i++) my_mac[i] = mac[i];
 }
 
@@ -54,9 +55,11 @@ bool chck_snd_to_tgt(const u_char* packet, sess sess){
 }
 
 void rnd_pckt(const u_char* p, uint8_t* my_mac, sess sess){
+
     struct ip_pckt* pckt = (ip_pckt*)p;
     memcpy(pckt->eth.src_mac, my_mac, 6);
     memcpy(pckt->eth.dst_mac, sess.tgt_mac, 6);
+
 }
 
 bool chck_arp_reply(const u_char* packet, uint8_t* my_mac){
@@ -69,12 +72,15 @@ bool chck_arp_reply(const u_char* packet, uint8_t* my_mac){
     if(!memcmp(arp_p.eth.dst_mac, my_mac, 6)) return true;
     }
     return false;
+
 }
 
 void ext_mac(const u_char* packet, uint8_t* tgt_mac){
+
     struct arp_h arp;
     memcpy(&arp, &packet[14], 28);
     for (int i=0; i<6; i++) tgt_mac[i] = arp.snd_mac[i];
+
 }
 
 void get_mac(pcap_t* handle, uint8_t* snd_mac, uint8_t* tgt_mac, uint8_t* tgt_ip){
@@ -113,10 +119,13 @@ void get_mac(pcap_t* handle, uint8_t* snd_mac, uint8_t* tgt_mac, uint8_t* tgt_ip
 
 
 void print_mac(uint8_t* mac){
+
     printf("MAC Address : %.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
 }
 
 void snd_rply (pcap_t* handle, uint8_t* snd_mac, uint8_t* snd_ip, uint8_t* tgt_mac, uint8_t* tgt_ip){
+
     struct arp_pckt arp_p;
 
     memcpy(arp_p.eth.dst_mac, tgt_mac, 6);
@@ -136,12 +145,14 @@ void snd_rply (pcap_t* handle, uint8_t* snd_mac, uint8_t* snd_ip, uint8_t* tgt_m
 }
 
 bool chck_arp(const u_char* packet, uint8_t* my_mac){
+
     int type;
     struct eth_h eth;
     memcpy(&eth, packet, 14);
     type = (eth.type[0]<<8 | eth.type[1]);
     if(type == 0x0806) {
     if(!memcmp(eth.dst_mac, my_mac, 6) || !memcmp(eth.dst_mac, "\xff\xff\xff\xff\xff\xff", 6)) return true;
+
     }
     return false;
 }
@@ -158,6 +169,7 @@ int main(int argc, char* argv[]) {
     }
 
     if( (argc-2)%2 != 0){
+
         printf("==================================================\n");
         printf("Check that session arguments exists. ex) sender_ip or target_ip \n");
         printf("./[program name] [dev] [sender_ip] [target_ip] ... [sender_ip] [target_ip]\n");
@@ -200,6 +212,7 @@ int main(int argc, char* argv[]) {
         }
 
         while (true) {
+
             struct pcap_pkthdr* header;
             const u_char* packet;
             int res = pcap_next_ex(handle, &header, &packet);
