@@ -92,12 +92,10 @@ void get_mac(pcap_t* handle, uint8_t* snd_mac, uint8_t* tgt_mac, uint8_t* tgt_ip
     memcpy(arp_p.arp.tgt_mac, "\x00\x00\x00\x00\x00\x00", 6);
     memcpy(arp_p.arp.tgt_ip, tgt_ip, 4);
 
-   // for (int i=0; i<5; i++){
         if(!pcap_sendpacket(handle, (const u_char*)&arp_p, 60))
             printf("waiting\n");
         else
             fprintf(stderr, "send packet error!\n");
-  // }
     while (true) {
         struct pcap_pkthdr* header;
         const u_char* packet;
